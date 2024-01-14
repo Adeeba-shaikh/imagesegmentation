@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 import math
-
+import sys
 def get_string(img_path):
     
     img = cv2.imread(img_path)
@@ -77,7 +77,7 @@ def draw_contours(img_path):
 
     x1=1
     for i, cnt in enumerate(contours):
-        if cv2.contourArea(cnt) > 900:  # Set a minimum contour area
+        if cv2.contourArea(cnt) > 1200:  # Set a minimum contour area
             _,_,w,h = cv2.boundingRect(cnt)
             aspect_ratio = float(w)/h
             if 1.8 < aspect_ratio: 
@@ -107,6 +107,8 @@ def draw_contours(img_path):
                     cv2.imwrite(os.path.join(output_dir, f'line_{x1}.png'), warped)
                     x1+=1
 
-img_path = r"C:\Users\Adeeba\Desktop\mar-test-2.jpeg"
-output_dir =r"C:\Users\Adeeba\Desktop\sampledataset"
+if sys.argv != 4:
+    print("usage: python getLines.py imagePath outputDirectory")
+img_path = sys.argv[1]
+output_dir =sys.argv[2]
 get_string(img_path)
