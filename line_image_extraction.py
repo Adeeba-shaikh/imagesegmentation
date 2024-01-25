@@ -37,57 +37,71 @@ def draw_contours(img_path):
     img = cv2.imread(img_path,0)
     original_img = img.copy() 
     
-    img = cv2.medianBlur(img, 5)
+    img = cv2.GaussianBlur(img, (5, 5), 0)
 
     # Threshold the image
     # _, threshed = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     threshed = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                      cv2.THRESH_BINARY_INV, 11, 1)
 
-    # Remove horizontal table borders
-    kernel = np.ones((4, 1), np.uintp) 
-    opened = cv2.morphologyEx(threshed, cv2.MORPH_OPEN, kernel)
-
     # Remove vertical table borders
-    lines = cv2.HoughLinesP(opened, 1, np.pi/180, 200, minLineLength=120, maxLineGap=5)
-    for line in lines:
-        x1, y1, x2, y2 = line[0]
-        # Calculate the angle of the line
-        angle = math.degrees(math.atan2(y2 - y1, x2 - x1))
-        # Ignore lines that are vertical or near-vertical
-        if abs(angle) > 45:
-            cv2.line(opened, (x1, y1), (x2, y2), (0, 0, 0), 4)        
-    lines_removed=opened 
+    lines = cv2.HoughLinesP(threshed, 1, np.pi/90, 40, minLineLength=40, maxLineGap=10)
+    if lines is not None:
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            # Calculate the angle of the line
+            angle = math.degrees(math.atan2(y2 - y1, x2 - x1))
+            # Ignore lines that are vertical or near-vertical
+            if abs(angle) > 45:
+                cv2.line(threshed, (x1, y1), (x2, y2), (0, 0, 0), 6)        
+    lines_removed=threshed 
+
+    # Remove horizontal table borders
+    kernel = np.ones((5, 1), np.uintp) 
+    opened = cv2.morphologyEx(lines_removed, cv2.MORPH_OPEN, kernel)
 
     #perform erosion for noise removal
-    kernel = np.ones((3,2), np.uint8)
-    erosion = cv2.erode(lines_removed, kernel)
+    kernel = np.ones((2,2), np.uint8)
+    erosion = cv2.erode(opened, kernel)
 
     #dialation
-    kernel = np.ones((2,48), np.uint8)
+    kernel = np.ones((3,50), np.uint8)
     dilated = cv2.dilate(erosion, kernel, iterations=1)
 
     #closing to fill the smalls gaps left by dialation
-    kernel = np.ones((2,6), np.uint8)
+    kernel = np.ones((5,15), np.uint8)
     closed = cv2.morphologyEx(dilated, cv2.MORPH_CLOSE, kernel)
 
     # Find contours
     contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+    img_contours = original_img.copy()
+    cv2.drawContours(img_contours, contours, -1, (0, 255, 0), 1)
+    cv2.imwrite(os.path.join(output_dir, 'contours.png'), img_contours)
 
     x1=1
+    boxes = []
     for i, cnt in enumerate(contours):
-        if cv2.contourArea(cnt) > 900:  # Set a minimum contour area
+        if cv2.contourArea(cnt) > 800:  # Set a minimum contour area
             _,_,w,h = cv2.boundingRect(cnt)
             aspect_ratio = float(w)/h
-            if 1.8 < aspect_ratio: 
-                if h < img.shape[0] * 0.7 and w < img.shape[0] * 0.6:   # Avoid very large boxes that span most of the image height and width
+            if (1.5<aspect_ratio): 
+                if h < img.shape[0] * 0.7 and w < img.shape[0] * 0.8:   # Avoid very large boxes that span most of the image height and width
                     rect = cv2.minAreaRect(cnt)
                     box = cv2.boxPoints(rect)
                     box = np.intp(box)
                     
+                    # Increase top and bottom height
+                    top_increase_factor = 4   
+                    bottom_increase_factor = 3  
+                    center_y = sum([point[1] for point in box]) / 4
+                    for point in box:
+                        if point[1] < center_y:
+                            point[1] -= top_increase_factor
+                        else:
+                            point[1] += bottom_increase_factor
+
                     width = int(rect[1][0])
-                    height = int(rect[1][1])
+                    height = int(rect[1][1]) + (top_increase_factor + bottom_increase_factor) 
 
                     src_pts = box.astype("float32")
                     # Coordinate of the points in box points after the rectangle has been straightened
@@ -106,7 +120,16 @@ def draw_contours(img_path):
                     # Save the cropped image
                     cv2.imwrite(os.path.join(output_dir, f'line_{x1}.png'), warped)
                     x1+=1
+                    boxes.append(box) 
 
-img_path = r"C:\Users\Adeeba\Desktop\mar-test-2.jpeg"
-output_dir =r"C:\Users\Adeeba\Desktop\sampledataset"
+    # image with bounding boxes
+    for box in boxes:
+        cv2.drawContours(original_img,[box],0,(0,255,0),1, lineType=cv2.LINE_AA)
+    filename = os.path.join(output_dir, 'bounding_boxes.png')
+    cv2.imwrite(filename, original_img)
+    print('Saved as', filename)
+    return img
+
+img_path = r"image-path"
+output_dir =r"path-to-preferred-output-directory"
 get_string(img_path)
