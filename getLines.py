@@ -21,20 +21,16 @@ def get_string(img_path):
     
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # kernel = np.ones((2, 2), np.uint8)
-    # img = cv2.dilate(img, kernel, iterations=1)
-    # img = cv2.erode(img, kernel, iterations=1) 
+    kernel = np.ones((2, 2), np.uint8)
+    img = cv2.dilate(img, kernel, iterations=1)
+    img = cv2.erode(img, kernel, iterations=1) 
 
     img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
     # kernel_line = np.ones((5, 5), np.uint8)
     # img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel_line)
-    processed_img_path = 'processed.png'
-    cv2.imwrite(processed_img_path, img)
-    
-    draw_contours(processed_img_path)
 
-def draw_contours(img_path): 
-    img = cv2.imread(img_path,0)
+
+    ## CONTOURS 
     original_img = img.copy() 
     
     img = cv2.medianBlur(img, 5)
@@ -107,7 +103,7 @@ def draw_contours(img_path):
                     cv2.imwrite(os.path.join(output_dir, f'line_{x1}.png'), warped)
                     x1+=1
 
-if sys.argv != 4:
+if sys.argv != 3:
     print("usage: python getLines.py imagePath outputDirectory")
 img_path = sys.argv[1]
 output_dir =sys.argv[2]
