@@ -36,6 +36,8 @@ def get_string(img_path):
 def draw_contours(img_path): 
     img = cv2.imread(img_path,0)
     original_img = img.copy() 
+    cv2.imwrite(os.path.join(output_dir, 'original.png'), original_img)
+
     
     img = cv2.GaussianBlur(img, (5, 5), 0)
 
@@ -44,8 +46,8 @@ def draw_contours(img_path):
     threshed = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                      cv2.THRESH_BINARY_INV, 11, 1)
 
-    # Remove vertical table borders
-    lines = cv2.HoughLinesP(threshed, 1, np.pi/90, 40, minLineLength=40, maxLineGap=10)
+    # # Remove vertical table borders
+    lines = cv2.HoughLinesP(threshed, 1, np.pi/90, 40, minLineLength=70, maxLineGap=10)
     if lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line[0]
@@ -55,22 +57,27 @@ def draw_contours(img_path):
             if abs(angle) > 45:
                 cv2.line(threshed, (x1, y1), (x2, y2), (0, 0, 0), 6)        
     lines_removed=threshed 
+    cv2.imwrite(os.path.join(output_dir, 'lines_removed.png'), lines_removed)
 
-    # Remove horizontal table borders
-    kernel = np.ones((5, 1), np.uintp) 
+ # Remove horizontal table borders
+    kernel = np.ones((7, 1), np.uintp) 
     opened = cv2.morphologyEx(lines_removed, cv2.MORPH_OPEN, kernel)
+    cv2.imwrite(os.path.join(output_dir, 'opened.png'), opened)
 
     #perform erosion for noise removal
     kernel = np.ones((2,2), np.uint8)
     erosion = cv2.erode(opened, kernel)
+    cv2.imwrite(os.path.join(output_dir, 'erosion.png'), erosion)
 
     #dialation
-    kernel = np.ones((3,6), np.uint8)
+    kernel = np.ones((7,20), np.uint8)
     dilated = cv2.dilate(erosion, kernel, iterations=1)
+    cv2.imwrite(os.path.join(output_dir, 'dilated.png'), dilated)
 
     #closing to fill the smalls gaps left by dialation
-    kernel = np.ones((1,5), np.uint8)
+    kernel = np.ones((5,10), np.uint8)
     closed = cv2.morphologyEx(dilated, cv2.MORPH_CLOSE, kernel)
+    cv2.imwrite(os.path.join(output_dir, 'closed.png'), closed)
 
     # Find contours
     contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -84,18 +91,30 @@ def draw_contours(img_path):
         x, y, w, h = cv2.boundingRect(cnt)
 
         if w > 20 and h > 20:
-            boxes.append((x, y, w, h))
+            # top_increase_factor = 13 
+            # bottom_increase_factor = 4
+            # y -= top_increase_factor
+            # h += (top_increase_factor + bottom_increase_factor)
+            cv2.rectangle(original_img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            word_img = original_img[y:y+h, x:x+w]
+            # cv2.imwrite(os.path.join(output_dir, f'word_{i}.png'), word_img)
+        boxes.append((x, y, w, h))
 
     for box in boxes:
         x, y, w, h = box
-        cv2.rectangle(original_img, (x, y), (x+w, y+h), (0, 255, 0), 2)
-
     filename = os.path.join(output_dir, 'word_boxes.png')
     cv2.imwrite(filename, original_img)
     print('Saved as', filename)
 
     return original_img
 
-img_path = r'path-to-your-image-file'
-output_dir =r'path-to-your-output-directory'
+img_path = r"C:\Users\Adeeba\Downloads\WhatsApp Image 2024-03-02 at 12.28.45 AM.jpeg"
+output_dir =r"C:\Users\Adeeba\Desktop\err3dataset"
 get_string(img_path)
+
+#r'path-to-your-image-file'
+# output_dir =r'path-to-your-output-directory'
+
+
+
+# perfect for after 12 
