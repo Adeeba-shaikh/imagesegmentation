@@ -276,10 +276,8 @@ def process_pdf(pdf_path, output_directory):
 if __name__ == "__main__":
     # Define the path to the PDF file
     #pdf_file_path = r"C:\Users\Adeeba\Desktop\py script\Scholarship_notice_2023-24_enclosures.pdf"
-    pdf_file_path = r"C:\Users\Adeeba\Downloads\2023060775.pdf"
-    
-    # Define the path to the output directory
-    output_directory = r"C:\Users\Adeeba\Desktop\sampledataset"
+    pdf_file_path = r"PDF Path"
+    output_directory = r"path-to-preferred-output-directory"
     
     # Create the output directory if it does not exist
     if not os.path.exists(output_directory):
