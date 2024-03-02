@@ -129,10 +129,8 @@ if __name__ == "__main__":
     # Define the path to the PDF file
     # pdf_file_path = r"C:\Users\Adeeba\Downloads\2023060775.pdf"
     # pdf_file_path = r"C:\Users\Adeeba\Desktop\py script\Scholarship_notice_2023-24_enclosures.pdf"
-    pdf_file_path = r"C:\Users\Adeeba\Downloads\testpdf_merged.pdf"
-
-    # Define the path to the output directory
-    output_directory = r"C:\Users\Adeeba\Desktop\err3dataset"
+    pdf_file_path = r"PDF Path"
+    output_directory = r"path-to-preferred-output-directory"
 
     # Process the PDF file
     process_pdf(pdf_file_path, output_directory)

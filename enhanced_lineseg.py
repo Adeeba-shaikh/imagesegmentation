@@ -55,7 +55,7 @@ def process_pdf(pdf_path, output_directory):
                 page_image_path = os.path.join(output_directory, f"page{page_number + 1}.png")
                 cv2.imwrite(page_image_path, image)
 if __name__ == "__main__":
-    pdf_file_path = r"C:\Users\Adeeba\Desktop\TESTINGPDFS\marathi-3pgs.pdf"
-    output_directory = r"C:\Users\Adeeba\Desktop\sampledataset"
+    pdf_file_path = r"PDF Path"
+    output_directory = r"path-to-preferred-output-directory"
     process_pdf(pdf_file_path, output_directory)
     print("PDF PROCESSED SUCCESSFULLY")
